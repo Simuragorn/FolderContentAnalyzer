@@ -8,25 +8,42 @@ internal class Program
         {
             ConsoleDisplay.DisplayBanner();
 
-            var directoryPath = InputHandler.GetDirectoryPath(args);
+            var continueAnalysis = true;
+            var firstRun = true;
 
-            Console.WriteLine($"Starting analysis of: {directoryPath}");
-            Console.WriteLine();
-
-            var progress = new Progress<string>(path =>
+            while (continueAnalysis)
             {
-                ConsoleDisplay.DisplayProgress(path);
-            });
+                var directoryPath = InputHandler.GetDirectoryPath(firstRun ? args : Array.Empty<string>());
+                firstRun = false;
 
-            var analyzer = new DirectoryAnalyzer();
-            var results = analyzer.Analyze(directoryPath, progress);
+                Console.WriteLine($"Starting analysis of: {directoryPath}");
+                Console.WriteLine();
 
-            var totalSize = results.Sum(item => item.SizeInBytes);
-            var displayItems = results.Take(40).ToList();
+                var progress = new Progress<string>(path =>
+                {
+                    ConsoleDisplay.DisplayProgress(path);
+                });
 
-            ConsoleDisplay.DisplayResults(displayItems, totalSize, results.Count, analyzer.SkippedItemsCount);
+                var analyzer = new DirectoryAnalyzer();
+                var results = analyzer.Analyze(directoryPath, progress);
 
-            Console.WriteLine();
+                var totalSize = results.Sum(item => item.SizeInBytes);
+                var displayItems = results.Take(40).ToList();
+
+                ConsoleDisplay.DisplayResults(displayItems, totalSize, results.Count, analyzer.SkippedItemsCount);
+
+                Console.WriteLine();
+                Console.Write("Analyze another directory? (y/n): ");
+                var response = Console.ReadLine()?.Trim().ToLower();
+
+                continueAnalysis = response == "y" || response == "yes";
+
+                if (continueAnalysis)
+                {
+                    Console.WriteLine();
+                }
+            }
+
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
